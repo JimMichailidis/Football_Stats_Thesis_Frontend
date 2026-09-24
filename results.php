@@ -46,241 +46,399 @@
         return ucwords(strtolower($m));
     }, $metrics);
 
-    // Χρώματα για target + top5
+        // Χρώματα για target + top5 (Vibrant Dark Theme Palette)
     $colors = [
-        'target' => ['border' => '#0d6efd', 'bg' => 'rgba(13,110,253,0.15)'],
-        0        => ['border' => '#dc3545', 'bg' => 'rgba(220,53,69,0.10)'],
-        1        => ['border' => '#198754', 'bg' => 'rgba(25,135,84,0.10)'],
-        2        => ['border' => '#fd7e14', 'bg' => 'rgba(253,126,20,0.10)'],
-        3        => ['border' => '#6f42c1', 'bg' => 'rgba(111,66,193,0.10)'],
-        4        => ['border' => '#20c997', 'bg' => 'rgba(32,201,151,0.10)'],
+        'target' => ['border' => '#38bdf8', 'bg' => 'rgba(56, 189, 248, 0.20)'], // Electric Cyan
+        0        => ['border' => '#10b981', 'bg' => 'rgba(16, 185, 129, 0.15)'], // Emerald (#1)
+        1        => ['border' => '#f43f5e', 'bg' => 'rgba(244, 63, 94, 0.15)'],  // Rose (#2)
+        2        => ['border' => '#fbbf24', 'bg' => 'rgba(251, 191, 36, 0.15)'], // Amber (#3)
+        3        => ['border' => '#a78bfa', 'bg' => 'rgba(167, 139, 250, 0.15)'],// Purple (#4)
+        4        => ['border' => '#2dd4bf', 'bg' => 'rgba(45, 212, 191, 0.15)'], // Teal (#5)
     ];
 ?>
 
 <head>
     <meta charset="UTF-8">
-    <title>Results — Scouting Tool</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scouting Results — <?= htmlspecialchars($player_name) ?></title>
 
+    <!-- Google Font: Plus Jakarta Sans -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet">
+
+    <!-- Bootstrap 5 CSS & Icons -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+
+    <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 
-    <style>
-        body { background: #f8f9fa; }
-
-        /* Player cards */
-        .player-card {
-            border: none;
-            border-radius: 15px;
-            margin-bottom: 20px;
-            transition: transform 0.25s ease, box-shadow 0.25s ease;
-        }
-        .player-card:hover {
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-        }
-
-        /* Similarity score */
-        .similarity-score {
-            font-size: 1.5rem;
-            font-weight: 900;
-            color: #0d6efd;
-        }
-
-        .progress {
-            height: 10px;
-            border-radius: 10px;
-            background: #e9ecef;
-        }
-
-        /* Radar chart container */
-        .radar-container {
-            background: white;
-            border-radius: 15px;
-            padding: 30px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.08);
-            margin-bottom: 40px;
-        }
-
-        .radar-container canvas {
-            max-height: 500px;
-        }
-
-        /* Legend */
-        .legend-dot {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            display: inline-block;
-            margin-right: 6px;
-        }
-    </style>
+    <!-- Custom Theme CSS -->
+    <link href="assets/css/theme.css" rel="stylesheet">
 </head>
 
 <body>
-<div class="container py-5">
+    <!-- Ambient Background Lights & Grid -->
+    <div class="ambient-glow ambient-glow-1"></div>
+    <div class="ambient-glow ambient-glow-2"></div>
+    <div class="ambient-grid"></div>
 
-    <!-- Τίτλος -->
-    <div class="text-center mb-5">
-        <h1 class="fw-bold">
-            Players similar to
-            <span class="text-primary"><?= htmlspecialchars($player_name) ?></span>
-        </h1>
-        <p class="text-muted">Αποτελέσματα βάσει Cosine Similarity &amp; MinMax Normalization</p>
-        <a href="search.php" class="btn btn-outline-secondary btn-sm">
-            ← Επιστροφή στην αναζήτηση
-        </a>
-    </div>
+    <div class="app-wrapper">
 
-    <!-- API Error -->
-    <?php if ($http_status !== 200): ?>
-        <div class="alert alert-danger">
-            <strong>Σφάλμα API:</strong>
-            <?= $api_response['error'] ?? "Η σύνδεση με το AI Engine (Python) απέτυχε. $curl_error" ?>
-        </div>
+        <!-- Top Navbar -->
+        <nav class="navbar-custom">
+            <div class="container d-flex align-items-center justify-content-between">
+                <a href="index.php" class="brand-badge text-decoration-none">
+                    <div class="brand-icon">
+                        <i class="bi bi-radar"></i>
+                    </div>
+                    <div>
+                        <h1 class="brand-title">ScoutIQ</h1>
+                        <span class="brand-sub">Similarity Intelligence</span>
+                    </div>
+                </a>
 
-    <?php else: ?>
+                <div class="d-flex align-items-center gap-2">
+                    <a href="search.php"
+                        class="btn btn-sm btn-outline-light rounded-pill px-3 py-2 d-flex align-items-center gap-1"
+                        style="border-color: rgba(255,255,255,0.15);">
+                        <i class="bi bi-arrow-left"></i>
+                        <span>New Search</span>
+                    </a>
+                    <a href="index.php"
+                        class="btn btn-sm btn-outline-light rounded-pill px-3 py-2 d-flex align-items-center gap-1"
+                        style="border-color: rgba(255,255,255,0.15);">
+                        <i class="bi bi-house"></i>
+                        <span>Home</span>
+                    </a>
+                </div>
+            </div>
+        </nav>
 
-        <!-- ── Radar Chart ─────────────────────────────────────────────── -->
-        <?php if (!empty($radar_data) && !empty($metrics)): ?>
-        <div class="radar-container">
-            <h5 class="fw-bold text-center mb-4">📊 Statistical Profile Comparison</h5>
+        <main class="container my-auto py-5" style="max-width: 1050px;">
 
-            <!-- Legend -->
-            <div class="d-flex flex-wrap justify-content-center gap-3 mb-4">
-                <span>
-                    <span class="legend-dot" style="background: <?= $colors['target']['border'] ?>;"></span>
-                    <strong><?= htmlspecialchars($target) ?></strong>
-                </span>
-                <?php foreach ($results as $i => $p): ?>
-                    <span>
-                        <span class="legend-dot" style="background: <?= $colors[$i]['border'] ?>;"></span>
-                        <?= htmlspecialchars($p['name']) ?>
-                    </span>
-                <?php endforeach; ?>
+            <!-- Target Player Benchmark Banner -->
+            <div class="target-player-banner d-flex justify-content-between align-items-center flex-wrap gap-3">
+                <div>
+                    <div class="d-flex align-items-center gap-2 mb-1">
+                        <span class="badge rounded-pill px-3 py-1"
+                            style="background: rgba(56, 189, 248, 0.2); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.3); font-size: 0.75rem;">
+                            Benchmark Target
+                        </span>
+                        <span class="text-secondary small">• Cosine Similarity Model</span>
+                    </div>
+                    <h2 class="text-white fw-bold mb-0" style="font-size: 2rem;">
+                        <?= htmlspecialchars($player_name) ?>
+                    </h2>
+                </div>
+
+                <div class="d-flex align-items-center gap-3">
+                    <div class="text-end">
+                        <div class="text-white fw-bold fs-5"><?= count($metrics) ?> Metrics</div>
+                        <div class="text-secondary small">Evaluated Per 90</div>
+                    </div>
+                    <div class="vr bg-secondary opacity-50" style="height: 35px;"></div>
+                    <div class="text-end">
+                        <div class="text-success fw-bold fs-5">Top 5</div>
+                        <div class="text-secondary small">Similar Clones</div>
+                    </div>
+                </div>
             </div>
 
-            <canvas id="radarChart"></canvas>
-        </div>
-        <?php endif; ?>
+            <!-- API Error Alert -->
+            <?php if ($http_status !== 200): ?>
+            <div class="alert alert-danger d-flex align-items-center p-3 rounded-4"
+                style="background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.3); color: #fca5a5;"
+                role="alert">
+                <i class="bi bi-exclamation-triangle-fill fs-4 me-3"></i>
+                <div>
+                    <div class="fw-bold">Σφάλμα Σύνδεσης με το AI API (Python / Flask)</div>
+                    <div class="small opacity-75">
+                        <?= $api_response['error'] ?? "Βεβαιώσου ότι το backend_api.py τρέχει στο port 5001. $curl_error" ?>
+                    </div>
+                </div>
+            </div>
 
-        <!-- ── Player Cards ────────────────────────────────────────────── -->
-        <div class="row justify-content-center">
-            <div class="col-md-8">
+            <?php else: ?>
+
+            <!-- ── Radar Chart Card ─────────────────────────────────────── -->
+            <?php if (!empty($radar_data) && !empty($metrics)): ?>
+            <div class="radar-card">
+                <div class="radar-header">
+                    <h4 class="text-white fw-bold mb-1">
+                        <i class="bi bi-radar text-info me-2"></i>Multidimensional Radar Profile
+                    </h4>
+                    <p class="text-secondary small mb-3">
+                        Πάτησε πάνω σε οποιονδήποτε παίκτη στο legend για να απομονώσεις ή να συγκρίνεις το πολύγωνό
+                        του.
+                    </p>
+
+                    <!-- Quick View Presets -->
+                    <div class="d-flex justify-content-center gap-2 mb-3">
+                        <button type="button" class="btn btn-sm btn-outline-info rounded-pill px-3 py-1"
+                            style="font-size: 0.75rem;" onclick="setPreset('duel')">
+                            <i class="bi bi-person-fill-check me-1"></i>Target vs #1
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1"
+                            style="font-size: 0.75rem; border-color: rgba(255,255,255,0.15);"
+                            onclick="setPreset('target')">
+                            <i class="bi bi-person me-1"></i>Target Only
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-light rounded-pill px-3 py-1"
+                            style="font-size: 0.75rem; border-color: rgba(255,255,255,0.15);"
+                            onclick="setPreset('all')">
+                            <i class="bi bi-people me-1"></i>Show All (6)
+                        </button>
+                    </div>
+
+                    <!-- Interactive Legend Chips (Αρχικά μόνο Target & #1 ενεργοί) -->
+                    <div class="radar-legend-container" id="radarLegend">
+                        <div class="radar-chip" data-idx="0" onclick="toggleDataset(0, this)">
+                            <span class="radar-chip-dot"
+                                style="background: <?= $colors['target']['border'] ?>; box-shadow: 0 0 8px <?= $colors['target']['border'] ?>;"></span>
+                            <span><?= htmlspecialchars($target) ?> (Target)</span>
+                        </div>
+                        <?php foreach ($results as $i => $p): ?>
+                        <div class="radar-chip <?= $i > 0 ? 'disabled' : '' ?>" data-idx="<?= $i + 1 ?>"
+                            onclick="toggleDataset(<?= $i + 1 ?>, this)">
+                            <span class="radar-chip-dot" style="background: <?= $colors[$i]['border'] ?>;"></span>
+                            <span>#<?= $i + 1 ?> <?= htmlspecialchars($p['name']) ?></span>
+                        </div>
+                        <?php endforeach; ?>
+                    </div>
+                </div>
+
+                <div style="position: relative; height: 550px;">
+                    <canvas id="radarChart"></canvas>
+                </div>
+
+            </div>
+            <?php endif; ?>
+
+            <!-- ── Top 5 Similar Player Cards ────────────────────────────── -->
+            <div class="mb-4">
+                <h5 class="text-white fw-bold mb-3 d-flex align-items-center gap-2">
+                    <i class="bi bi-trophy-fill text-warning"></i>
+                    <span>Top 5 Statistical Recommendations</span>
+                </h5>
 
                 <?php foreach ($results as $rank => $player): ?>
-                    <div class="card player-card shadow-sm">
-                        <div class="card-body p-4">
-                            <div class="row align-items-center">
+                <div class="result-player-card">
+                    <div class="row align-items-center g-3">
 
-                                <!-- Rank badge -->
-                                <div class="col-auto">
-                                    <div class="rounded-circle text-white d-flex align-items-center justify-content-center fw-bold"
-                                         style="width:50px; height:50px; background:<?= $colors[$rank]['border'] ?>;">
-                                        <?= $rank + 1 ?>
-                                    </div>
-                                </div>
-
-                                <!-- Player info -->
-                                <div class="col">
-                                    <h4 class="mb-0 fw-bold"><?= htmlspecialchars($player['name']) ?></h4>
-                                    <span class="badge bg-secondary"><?= $player['position'] ?></span>
-                                    <span class="text-muted ms-2"><?= $player['team'] ?></span>
-                                </div>
-
-                                <!-- Similarity score -->
-                                <div class="col-md-4 text-end">
-                                    <div class="similarity-score"><?= $player['similarity'] ?>%</div>
-                                    <div class="progress mt-2">
-                                        <div class="progress-bar progress-bar-striped progress-bar-animated"
-                                             role="progressbar"
-                                             style="width:<?= $player['similarity'] ?>%; background:<?= $colors[$rank]['border'] ?>;">
-                                        </div>
-                                    </div>
-                                </div>
-
+                        <!-- Rank Badge -->
+                        <div class="col-auto">
+                            <div class="rank-badge" style="background: <?= $colors[$rank]['border'] ?>;">
+                                <?= $rank + 1 ?>
                             </div>
                         </div>
+
+                        <!-- Player Info -->
+                        <div class="col">
+                            <h4 class="mb-1 fw-bold text-white fs-5">
+                                <?= htmlspecialchars($player['name']) ?>
+                            </h4>
+                            <div class="d-flex align-items-center gap-2">
+                                <span class="badge rounded-pill px-2 py-1"
+                                    style="background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.3); font-size: 0.75rem;">
+                                    <?= htmlspecialchars($player['position']) ?>
+                                </span>
+                                <span class="badge rounded-pill px-2 py-1"
+                                    style="background: rgba(255, 255, 255, 0.08); color: #cbd5e1; font-size: 0.75rem;">
+                                    <i class="bi bi-shield me-1 text-info"></i><?= htmlspecialchars($player['team']) ?>
+                                </span>
+                            </div>
+                        </div>
+
+                        <!-- Similarity Score -->
+                        <div class="col-12 col-md-4 text-md-end">
+                            <div class="similarity-score-text" style="color: <?= $colors[$rank]['border'] ?>;">
+                                <?= $player['similarity'] ?>%
+                            </div>
+                            <div class="similarity-progress">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar"
+                                    style="width: <?= $player['similarity'] ?>%; background: <?= $colors[$rank]['border'] ?>; height: 100%;">
+                                </div>
+                            </div>
+                            <small class="text-secondary" style="font-size: 0.72rem;">Mathematical Similarity</small>
+                        </div>
+
                     </div>
+                </div>
                 <?php endforeach; ?>
-
             </div>
-        </div>
 
-    <?php endif; ?>
+            <?php endif; ?>
 
-</div><!-- container -->
+        </main>
+    </div> <!-- /app-wrapper -->
 
-<!-- ── Chart.js Radar ─────────────────────────────────────────────────────── -->
-<?php if (!empty($radar_data) && !empty($metrics)): ?>
-<script>
-    const labels  = <?= json_encode(array_values($labels)) ?>;
-    const radar   = <?= json_encode($radar_data) ?>;
-    const target  = <?= json_encode($target) ?>;
+    <!-- ── Chart.js Radar ─────────────────────────────────────────────────────── -->
+    <?php if (!empty($radar_data) && !empty($metrics)): ?>
+    <script>
+    const labels = <?= json_encode(array_values($labels)) ?>;
+    const radar = <?= json_encode($radar_data) ?>;
+    const target = <?= json_encode($target) ?>;
     const players = <?= json_encode(array_column($results, 'name')) ?>;
-    const colors  = <?= json_encode($colors) ?>;
+    const colors = <?= json_encode($colors) ?>;
 
-    // Χτίζουμε datasets — target πρώτος, μετά top5
     const datasets = [];
 
-    // Target player
+    // 1. Target Player (Πάντα ορατός)
     if (radar[target]) {
         datasets.push({
-            label:           target,
-            data:            radar[target],
-            borderColor:     colors['target']['border'],
+            label: target,
+            data: radar[target],
+            borderColor: colors['target']['border'],
             backgroundColor: colors['target']['bg'],
-            borderWidth:     3,
-            pointRadius:     4,
+            borderWidth: 3,
+            pointBackgroundColor: colors['target']['border'],
+            pointBorderColor: '#ffffff',
+            pointRadius: 2.5,
+            pointHoverRadius: 6,
+            hidden: false
         });
     }
 
-    // Top 5
+    // 2. Top 5 Similar Players (Μόνο ο #1 ορατός αρχικά, #2..#5 hidden)
     players.forEach((name, i) => {
         if (radar[name]) {
             datasets.push({
-                label:           name,
-                data:            radar[name],
-                borderColor:     colors[i]['border'],
+                label: name,
+                data: radar[name],
+                borderColor: colors[i]['border'],
                 backgroundColor: colors[i]['bg'],
-                borderWidth:     2,
-                pointRadius:     3,
+                borderWidth: 2,
+                pointBackgroundColor: colors[i]['border'],
+                pointBorderColor: '#ffffff',
+                pointRadius: 2,
+                pointHoverRadius: 5,
+                hidden: i > 0 // Μόνο ο #1 φαίνεται by default!
             });
         }
     });
 
-    new Chart(document.getElementById('radarChart'), {
+    // Dark-Theme Radar Configuration
+    window.chartInstance = new Chart(document.getElementById('radarChart'), {
         type: 'radar',
-        data: { labels, datasets },
+        data: {
+            labels,
+            datasets
+        },
         options: {
             responsive: true,
+            maintainAspectRatio: false,
             scales: {
                 r: {
                     min: 0,
                     max: 1,
                     ticks: {
                         stepSize: 0.2,
-                        font: { size: 10 },
+                        display: true,
+                        color: '#94a3b8',
                         backdropColor: 'transparent',
+                        font: {
+                            family: "'Plus Jakarta Sans', sans-serif",
+                            size: 10
+                        },
+                        callback: function(val) {
+                            return (val * 100).toFixed(0) + '%';
+                        }
                     },
                     pointLabels: {
-                        font: { size: 11, weight: 'bold' },
+                        color: '#f8fafc',
+                        font: {
+                            family: "'Plus Jakarta Sans', sans-serif",
+                            size: labels.length > 14 ? 10 : 11,
+                            weight: '700'
+                        },
+                        padding: 8
                     },
-                    grid:      { color: 'rgba(0,0,0,0.08)' },
-                    angleLines: { color: 'rgba(0,0,0,0.1)' },
+                    grid: {
+                        color: 'rgba(255, 255, 255, 0.12)',
+                        lineWidth: 1
+                    },
+                    angleLines: {
+                        color: 'rgba(255, 255, 255, 0.18)',
+                        lineWidth: 1
+                    }
                 }
             },
             plugins: {
-                legend: { display: false }, // χρησιμοποιούμε το custom legend
+                legend: {
+                    display: false
+                },
                 tooltip: {
+                    backgroundColor: 'rgba(15, 23, 42, 0.95)',
+                    titleColor: '#ffffff',
+                    bodyColor: '#cbd5e1',
+                    borderColor: 'rgba(255, 255, 255, 0.15)',
+                    borderWidth: 1,
+                    padding: 12,
+                    cornerRadius: 10,
+                    titleFont: {
+                        family: "'Plus Jakarta Sans', sans-serif",
+                        weight: 'bold'
+                    },
+                    bodyFont: {
+                        family: "'Plus Jakarta Sans', sans-serif"
+                    },
                     callbacks: {
-                        label: ctx => ` ${ctx.dataset.label}: ${(ctx.raw * 100).toFixed(0)}%`
+                        label: ctx => ` ${ctx.dataset.label}: ${(ctx.raw * 100).toFixed(1)}%`
                     }
                 }
             }
         }
     });
-</script>
-<?php endif; ?>
+
+    // Toggle μεμονωμένου παίκτη από το chip
+    function toggleDataset(index, chipEl) {
+        if (!window.chartInstance) return;
+        const meta = window.chartInstance.getDatasetMeta(index);
+        const isHidden = meta.hidden === null ? window.chartInstance.data.datasets[index].hidden : meta.hidden;
+        meta.hidden = !isHidden;
+        chipEl.classList.toggle('disabled', meta.hidden);
+        window.chartInstance.update();
+    }
+
+    // Γρήγορα φίλτρα (Presets)
+    function setPreset(mode) {
+        if (!window.chartInstance) return;
+        const chips = document.querySelectorAll('#radarLegend .radar-chip');
+
+        window.chartInstance.data.datasets.forEach((ds, idx) => {
+            const meta = window.chartInstance.getDatasetMeta(idx);
+            let hide = false;
+
+            if (mode === 'target') {
+                hide = (idx !== 0); // μόνο Target
+            } else if (mode === 'duel') {
+                hide = (idx > 1); // Target (0) και #1 (1)
+            } else if (mode === 'all') {
+                hide = false; // όλοι
+            }
+
+            meta.hidden = hide;
+
+            // Ενημέρωση των chips
+            chips.forEach(chip => {
+                if (parseInt(chip.getAttribute('data-idx')) === idx) {
+                    if (hide) {
+                        chip.classList.add('disabled');
+                    } else {
+                        chip.classList.remove('disabled');
+                    }
+                }
+            });
+        });
+
+        window.chartInstance.update();
+    }
+    </script>
+    <?php endif; ?>
 
 </body>
+
 </html>

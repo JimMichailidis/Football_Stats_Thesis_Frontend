@@ -1,0 +1,23 @@
+<?php
+// logout.php — Αποσύνδεση Διαχειριστή
+session_start();
+
+// Καθαρισμός των μεταβλητών session
+$_SESSION = array();
+
+// Διαγραφή του cookie του session
+if (ini_get("session.use_cookies")) {
+    $params = session_get_cookie_params();
+    setcookie(session_name(), '', time() - 42000,
+        $params["path"], $params["domain"],
+        $params["secure"], $params["httponly"]
+    );
+}
+
+
+session_destroy();
+
+// Ανακατεύθυνση στην οθόνη εισόδου
+header("Location: login.php?logged_out=1");
+exit();
+?>
